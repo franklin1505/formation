@@ -1,0 +1,299 @@
+cet fichier t'esplique de facon claire et d'etailler comment integrer une api rest dans angular 
+dans le dossier formation on a travailler avec une api django rest avec les modeles Personne et CategoriePersonne 
+si vous suivez les etapes proprement vous serrez apte a integrer n'importe quel api rest dans votre projet angular 
+
+pour pouvoir avoir lancer le serveur de l'api REST DJANGO
+lancer la commande :
+
+python manage.py runserver
+
+
+
+
+Étape 1 : Créer le service Angular
+Nous avons déjà créé le service personne.service.ts :
+
+typescript
+Copier le code
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+export interface Personne {
+  id: number;
+  nom: string;
+  prenom: string;
+  age: number;
+  categorie: number;
+}
+
+export interface PersonneCategorie {
+  id: number;
+  type_personne: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PersonneService {
+  private apiUrl = 'http://your-api-url/api';
+
+  constructor(private http: HttpClient) {}
+
+  getPersonnes(): Observable<Personne[]> {
+    return this.http.get<Personne[]>(`${this.apiUrl}/personnes/`);
+  }
+
+  getPersonne(id: number): Observable<Personne> {
+    return this.http.get<Personne>(`${this.apiUrl}/personnes/${id}/`);
+  }
+
+  createPersonne(personne: Personne): Observable<Personne> {
+    return this.http.post<Personne>(`${this.apiUrl}/personnes/`, personne);
+  }
+
+  updatePersonne(id: number, personne: Personne): Observable<Personne> {
+    return this.http.put<Personne>(`${this.apiUrl}/personnes/${id}/`, personne);
+  }
+
+  deletePersonne(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/personnes/${id}/`);
+  }
+
+  getCategories(): Observable<PersonneCategorie[]> {
+    return this.http.get<PersonneCategorie[]>(`${this.apiUrl}/categories/`);
+  }
+
+  createCategorie(categorie: PersonneCategorie): Observable<PersonneCategorie> {
+    return this.http.post<PersonneCategorie>(`${this.apiUrl}/categories/`, categorie);
+  }
+}
+Étape 2 : Créer le composant Personne
+Créez un fichier personne.component.ts :
+
+typescript
+Copier le code
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { PersonneService, Personne, PersonneCategorie } from '../services/personne.service';
+
+@Component({
+  selector: 'app-personne',
+  templateUrl: './personne.component.html',
+  styleUrls: ['./personne.component.css']
+})
+export class PersonneComponent implements OnInit {
+  personnes: Personne[] = [];
+  categories: PersonneCategorie[] = [];
+  personneForm: FormGroup;
+
+  constructor(
+    private fb: FormBuilder,
+    private personneService: PersonneService
+  ) {
+    this.personneForm = this.fb.group({
+      id: [0],
+      nom: ['', Validators.required],
+      prenom: ['', Validators.required],
+      age: ['', Validators.required],
+      categorie: ['', Validators.required]
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadPersonnes();
+    this.loadCategories();
+  }
+
+  loadPersonnes(): void {
+    this.personneService.getPersonnes().subscribe((data) => {
+      this.personnes = data;
+    });
+  }
+
+  loadCategories(): void {
+    this.personneService.getCategories().subscribe((data) => {
+      this.categories = data;
+    });
+  }
+
+  selectPersonne(personne: Personne): void {
+    this.personneForm.patchValue(personne);
+  }
+
+  savePersonne(): void {
+    if (this.personneForm.valid) {
+      const formValue = this.personneForm.value;
+      if (formValue.id) {
+        this.personneService.updatePersonne(formValue.id, formValue).subscribe(() => {
+          this.loadPersonnes();
+          this.personneForm.reset();
+        });
+      } else {
+        this.personneService.createPersonne(formValue).subscribe(() => {
+          this.loadPersonnes();
+          this.personneForm.reset();
+        });
+      }
+    }
+  }
+
+  deletePersonne(id: number): void {
+    this.personneService.deletePersonne(id).subscribe(() => {
+      this.loadPersonnes();
+    });
+  }
+}
+Créez le fichier personne.component.html :
+
+html
+Copier le code
+<div class="container">
+  <h1>Gestion des Personnes</h1>
+
+  <form [formGroup]="personneForm" (ngSubmit)="savePersonne()">
+    <input type="hidden" formControlName="id">
+    <div class="form-group">
+      <label for="nom">Nom</label>
+      <input type="text" formControlName="nom" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="prenom">Prénom</label>
+      <input type="text" formControlName="prenom" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="age">Âge</label>
+      <input type="number" formControlName="age" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="categorie">Catégorie</label>
+      <select formControlName="categorie" class="form-control">
+        <option *ngFor="let categorie of categories" [value]="categorie.id">{{ categorie.type_personne }}</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Sauvegarder</button>
+  </form>
+
+  <hr>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Prénom</th>
+        <th>Âge</th>
+        <th>Catégorie</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let personne of personnes">
+        <td>{{ personne.nom }}</td>
+        <td>{{ personne.prenom }}</td>
+        <td>{{ personne.age }}</td>
+        <td>{{ personne.categorie }}</td>
+        <td>
+          <button (click)="selectPersonne(personne)" class="btn btn-warning">Modifier</button>
+          <button (click)="deletePersonne(personne.id)" class="btn btn-danger">Supprimer</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+Étape 3 : Créer le composant PersonneCategorie
+Créez un fichier personne-categorie.component.ts :
+
+typescript
+Copier le code
+import { Component, OnInit } from '@angular/core';
+import { PersonneService, PersonneCategorie } from '../services/personne.service';
+
+@Component({
+  selector: 'app-personne-categorie',
+  templateUrl: './personne-categorie.component.html',
+  styleUrls: ['./personne-categorie.component.css']
+})
+export class PersonneCategorieComponent implements OnInit {
+  categories: PersonneCategorie[] = [];
+  newCategorie: PersonneCategorie = { id: 0, type_personne: '' };
+
+  constructor(private personneService: PersonneService) {}
+
+  ngOnInit(): void {
+    this.loadCategories();
+  }
+
+  loadCategories(): void {
+    this.personneService.getCategories().subscribe((data) => {
+      this.categories = data;
+    });
+  }
+
+  saveCategorie(): void {
+    if (this.newCategorie.type_personne) {
+      this.personneService.createCategorie(this.newCategorie).subscribe(() => {
+        this.loadCategories();
+        this.newCategorie = { id: 0, type_personne: '' };
+      });
+    }
+  }
+}
+Créez le fichier personne-categorie.component.html :
+
+html
+Copier le code
+<div class="container">
+  <h1>Gestion des Catégories de Personnes</h1>
+
+  <form (ngSubmit)="saveCategorie()">
+    <div class="form-group">
+      <label for="type_personne">Type de Personne</label>
+      <input type="text" [(ngModel)]="newCategorie.type_personne" name="type_personne" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Ajouter Catégorie</button>
+  </form>
+
+  <hr>
+
+  <ul class="list-group">
+    <li class="list-group-item" *ngFor="let categorie of categories">
+      {{ categorie.type_personne }}
+    </li>
+  </ul>
+</div>
+
+Étape 4 : Importer les modules nécessaires dans Angular
+Modifiez app.module.ts pour inclure les nouveaux composants et les modules nécessaires :
+
+typescript
+Copier le code
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import { PersonneService } from './general/services/personne.service';
+import { provideHttpClient } from '@angular/common/http';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    PersonneService,
+    provideHttpClient(),
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes),
+  ],
+};
+
+Étape 5 : Ajouter les composants au template principal
+Modifiez app.component.html pour inclure les composants Personne et PersonneCategorie :
+
+html
+Copier le code
+<app-personne />
+<hr>
+<app-personne-categorie />
+
+ou soit garder "
+<router-outlet />  et acceder a vos page via les liens 
+"
+Conclusion
+En suivant ces étapes, vous avez configuré un service Angular pour consommer une API REST, créé deux composants distincts pour gérer les Personnes et les PersonneCategories, et intégré ces composants dans votre application Angular. Assurez-vous de remplacer http://your-api-url/api par l'URL réelle de votre API.

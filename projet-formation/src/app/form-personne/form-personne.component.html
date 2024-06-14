@@ -1,0 +1,47 @@
+<!-- <h2>{{ personneForm.get('id')?.value === 0 ? 'Ajouter' : 'Modifier' }} une
+  Personne</h2>
+  <!-- (ngSubmit)="sauvegarderPersonne()"
+<form [formGroup]="personneForm" >
+  <label>
+    Nom:
+    <input class="form-control" formControlName="nom" required>
+  </label>
+  <label>
+    Prénom:
+    <input class="form-control" formControlName="prenom" required>
+  </label>
+  <label>
+    Âge:
+    <input class="form-control" type="number" formControlName="age" required>
+  </label>
+  <button class="btn btn-outline-primary btn-sm" type="submit">{{
+    personneForm.get('id')?.value === 0 ? 'Ajouter' :
+    'Modifier' }}</button>
+</form>
+
+<ul class="container my-3">
+  <h3>Liste des personnees </h3>
+  <li *ngFor="let personne of personnes" class="my-2">
+    {{ personne.nom }} {{ personne.prenom }} ({{ personne.age }} ans)
+  </li>
+</ul> -->
+
+<div class="container">
+  <h1>Gestion des Catégories de Personnes</h1>
+
+  <form (ngSubmit)="saveCategorie()">
+    <div class="form-group">
+      <label for="type_personne">Type de Personne</label>
+      <input type="text" [(ngModel)]="newCategorie.type_personne" name="type_personne" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Ajouter Catégorie</button>
+  </form>
+
+  <hr>
+
+  <ul class="list-group">
+    <li class="list-group-item" *ngFor="let categorie of categories">
+      {{ categorie.type_personne }}
+    </li>
+  </ul>
+</div>

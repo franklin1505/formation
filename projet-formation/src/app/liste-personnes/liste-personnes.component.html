@@ -1,0 +1,67 @@
+<!-- <h2>Liste des Personnes</h2>
+<ul class="container">
+  <li *ngFor="let personne of personnes" class="my-2">
+    {{ personne.nom }} {{ personne.prenom }} ({{ personne.age }} ans)
+  <!--  <button class="btn btn-primary btn-sm" (click)="selectPersonne(personne)">Modifier</button>
+    <button class="btn btn-danger btn-sm mx-2" (click)="supprimerPersonne(personne.id)">Supprimer</button>
+
+   </li>
+</ul>
+
+ <!-- <app-form-personne [personne]="selectedPersonne"></app-form-personne>
+
+ -->
+
+
+ <div class="container">
+  <h1>Gestion des Personnes</h1>
+
+  <form [formGroup]="personneForm" (ngSubmit)="savePersonne()">
+    <input type="hidden" formControlName="id">
+    <div class="form-group">
+      <label for="nom">Nom</label>
+      <input type="text" formControlName="nom" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="prenom">Prénom</label>
+      <input type="text" formControlName="prenom" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="age">Âge</label>
+      <input type="number" formControlName="age" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="categorie">Catégorie</label>
+      <select formControlName="categorie" class="form-control">
+        <option *ngFor="let categorie of categories" [value]="categorie.id">{{ categorie.type_personne }}</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Sauvegarder</button>
+  </form>
+
+  <hr>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Prénom</th>
+        <th>Âge</th>
+        <th>Catégorie</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let personne of personnes">
+        <td>{{ personne.nom }}</td>
+        <td>{{ personne.prenom }}</td>
+        <td>{{ personne.age }}</td>
+        <td>{{ personne.categorie }}</td>
+        <td>
+          <button (click)="selectPersonne(personne)" class="btn btn-warning">Modifier</button>
+          <button (click)="deletePersonne(personne.id)" class="btn btn-danger">Supprimer</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
